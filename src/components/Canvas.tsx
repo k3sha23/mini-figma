@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import type { PointerEvent as ReactPointerEvent, ReactNode } from "react"
 import type { Point, Shape, ToolId } from "../types/shape"
-import { GRID_SIZE, MIN_SHAPE_SIZE } from "../constants/canvas"
+import { GRID_SIZE, MIN_SHAPE_SIZE, ACCENT_COLOR } from "../constants/canvas"
 import {
   findTopmostShape,
   rectFromPoints,
@@ -17,8 +17,6 @@ interface CanvasProps {
   viewport: ViewportApi
   shapesApi: ShapesApi
 }
-
-const ACCENT = "#4d49fc"
 
 export function Canvas({ tool, viewport, shapesApi }: CanvasProps) {
   const { viewport: view, spaceHeld, isPanning, startPan, movePan, endPan, handleWheel } = viewport
@@ -165,7 +163,7 @@ export function Canvas({ tool, viewport, shapesApi }: CanvasProps) {
             top: topLeft.y - 2,
             width: width + 4,
             height: height + 4,
-            border: `2px solid ${ACCENT}`,
+            border: `2px solid ${ACCENT_COLOR}`,
           }}
         />
         {handles.map((handle, index) => (
@@ -178,7 +176,7 @@ export function Canvas({ tool, viewport, shapesApi }: CanvasProps) {
               width: 9,
               height: 9,
               background: "#ffffff",
-              border: `1.5px solid ${ACCENT}`,
+              border: `1.5px solid ${ACCENT_COLOR}`,
               boxSizing: "border-box",
             }}
           />

@@ -1,4 +1,5 @@
 import type { Shape } from "../types/shape"
+import { ACCENT_COLOR, PREVIEW_FILL } from "../constants/canvas"
 
 interface ShapeViewProps {
   shape: Shape
@@ -15,8 +16,8 @@ export function ShapeView({ shape, preview = false }: ShapeViewProps) {
         width: shape.width,
         height: shape.height,
         boxSizing: "border-box",
-        background: preview ? "rgba(77, 73, 252, 0.08)" : shape.fill,
-        border: preview ? "1px dashed #4d49fc" : "none",
+        background: preview ? PREVIEW_FILL : shape.fill,
+        border: preview ? `1px dashed ${ACCENT_COLOR}` : "none",
         borderRadius: shape.type === "ellipse" ? "50%" : 0,
       }}
     />

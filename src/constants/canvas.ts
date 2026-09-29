@@ -10,6 +10,9 @@ export const MIN_SHAPE_SIZE = 2
 
 export const DEFAULT_FILL = "#d9d9d9"
 
+export const ACCENT_COLOR = "#4d49fc"
+export const PREVIEW_FILL = "rgba(77, 73, 252, 0.08)"
+
 export const SHAPE_TYPE_LABELS: Record<ShapeType, string> = {
   rect: "Прямоугольник",
   ellipse: "Эллипс",
