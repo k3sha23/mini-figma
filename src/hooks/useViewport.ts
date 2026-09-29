@@ -9,7 +9,10 @@ export function useViewport() {
     pan: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
   }))
   const viewportRef = useRef(viewport)
-  viewportRef.current = viewport
+
+  useEffect(() => {
+    viewportRef.current = viewport
+  }, [viewport])
 
   const [spaceHeld, setSpaceHeld] = useState(false)
   const [isPanning, setIsPanning] = useState(false)
