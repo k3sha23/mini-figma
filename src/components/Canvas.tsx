@@ -24,7 +24,7 @@ export function Canvas({ tool, viewport, shapesApi }: CanvasProps) {
   const { viewport: view, spaceHeld, isPanning, startPan, movePan, endPan, handleWheel } = viewport
   const containerRef = useRef<HTMLDivElement | null>(null)
   const createOriginRef = useRef<Point | null>(null)
-  const moveRef = useRef<{ id: string; offset: Point } | null>(null)
+  const moveRef = useRef<{ id: string; offset: Point; batchOpen: boolean } | null>(null)
   const [draft, setDraft] = useState<Shape | null>(null)
 
   useEffect(() => {
@@ -62,10 +62,12 @@ export function Canvas({ tool, viewport, shapesApi }: CanvasProps) {
       const hit = findTopmostShape(shapesApi.shapes, world)
       shapesApi.select(hit ? hit.id : null)
       if (hit) {
-        shapesApi.beginBatch()
+        // Историю открываем лениво — при первом реальном сдвиге фигуры,
+        // чтобы клик без движения не тратил шаг undo.
         moveRef.current = {
           id: hit.id,
           offset: { x: world.x - hit.x, y: world.y - hit.y },
+          batchOpen: false,
         }
       }
     } else {
@@ -96,11 +98,20 @@ export function Canvas({ tool, viewport, shapesApi }: CanvasProps) {
         current ? { ...current, ...rect } : current,
       )
     } else if (moveRef.current) {
+      const move = moveRef.current
       const world = screenToWorld(local, view)
-      shapesApi.updateShape(moveRef.current.id, {
-        x: world.x - moveRef.current.offset.x,
-        y: world.y - moveRef.current.offset.y,
-      })
+      const nextX = world.x - move.offset.x
+      const nextY = world.y - move.offset.y
+      const shape = shapesApi.shapes.find((item) => item.id === move.id)
+      const unchanged =
+        shape !== undefined && shape.x === nextX && shape.y === nextY
+      if (!unchanged) {
+        if (!move.batchOpen) {
+          shapesApi.beginBatch()
+          move.batchOpen = true
+        }
+        shapesApi.updateShape(move.id, { x: nextX, y: nextY })
+      }
     }
   }
 
