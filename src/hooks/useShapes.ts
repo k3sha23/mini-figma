@@ -7,6 +7,7 @@ interface ShapesState {
   past: Shape[][]
   future: Shape[][]
   selectedId: string | null
+  openFillEditId: string | null
 }
 
 const HISTORY_LIMIT = 50
@@ -25,6 +26,7 @@ export function useShapes() {
     past: [],
     future: [],
     selectedId: null,
+    openFillEditId: null,
   })
   const countersRef = useRef<Record<Shape["type"], number>>({
     rect: 0,
@@ -38,7 +40,11 @@ export function useShapes() {
   }, [])
 
   const beginBatch = useCallback(() => {
-    setState(pushHistory)
+    // Закрывает «открытую» цветовую правку и фиксирует точку отката.
+    setState((current) => ({
+      ...pushHistory(current),
+      openFillEditId: null,
+    }))
   }, [])
 
   const addShape = useCallback((draft: ShapeDraft) => {
@@ -60,6 +66,7 @@ export function useShapes() {
       ...pushHistory(current),
       shapes: [...current.shapes, shape],
       selectedId: id,
+      openFillEditId: null,
     }))
     return id
   }, [])
@@ -67,7 +74,7 @@ export function useShapes() {
   const updateShape = useCallback(
     (
       id: string,
-      patch: Partial<Pick<Shape, "x" | "y" | "width" | "height" | "fill">>,
+      patch: Partial<Pick<Shape, "x" | "y" | "width" | "height">>,
     ) => {
       setState((current) => ({
         ...current,
@@ -83,8 +90,16 @@ export function useShapes() {
     setState((current) => {
       const shape = current.shapes.find((item) => item.id === id)
       if (!shape || shape.fill === fill) return current
+      // Непрерывная смена цвета одной фигуры — один шаг истории,
+      // чтобы живой ввод через color picker не вымел прошлые шаги.
+      const openBatch = current.openFillEditId === id
       return {
-        ...pushHistory(current),
+        ...current,
+        past: openBatch
+          ? current.past
+          : [...current.past.slice(-(HISTORY_LIMIT - 1)), current.shapes],
+        future: openBatch ? current.future : [],
+        openFillEditId: id,
         shapes: current.shapes.map((item) =>
           item.id === id ? { ...item, fill } : item,
         ),
@@ -107,6 +122,7 @@ export function useShapes() {
         past: current.past.slice(0, -1),
         future: [current.shapes, ...current.future].slice(0, HISTORY_LIMIT),
         selectedId,
+        openFillEditId: null,
       }
     })
   }, [])
@@ -126,6 +142,7 @@ export function useShapes() {
         past: [...current.past, current.shapes].slice(-HISTORY_LIMIT),
         future: rest,
         selectedId,
+        openFillEditId: null,
       }
     })
   }, [])
